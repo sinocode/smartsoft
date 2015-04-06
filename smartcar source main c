@@ -1,0 +1,160 @@
+#include "includes.h"
+#include "calculation.h"
+
+
+/*
+*********************************************************************************************************
+* Description: Data
+*********************************************************************************************************
+*/
+extern uint8_t Timer1sFlag;
+extern uint8_t Timer20msFlag;
+extern uint8_t Timer10msFlag;
+extern uint8_t Timer5msFlag;
+
+
+extern uint8_t  Dataflag ;
+extern uint8_t  DataLine ;
+extern uint16_t PSpeedCut ;
+extern uint8_t  lineCount  ;
+
+uint8_t  ADdata[ADLENGT] ={ 0  } ;        //黑线AD数组存储 
+uint8_t  Atem8B0 = 0 ; 
+uint8_t  ALeftLineAryy[50], ARightLineAryy[50],ALastLeftLinAryy[50],ALastRightLinAryy[50];
+uint8_t  LineFav[20] = { 0x80 };       //黑白二值化阀值
+int16_t  StringMID[25];     //转向位置
+uint8_t  ALineCal = 0 ;  
+uint8_t  CruteLineAD[30] = { 0 };      //当前黑线AD值
+int16_t   ATurnPWM ; 
+
+int16_t PWMCount = 0 ;    
+uint8_t keyflg = 0 ;
+uint16_t ASPeed0 ,ASPeed1 ,ASPeed2;
+uint16_t ASPeed3 ,ASPeed4 ,ASPeed5 ;
+uint16_t ATemp ,ATemp0 ;
+
+/*
+*********************************************************************************************************
+* Description: main
+*********************************************************************************************************
+*/
+void main(void) {
+
+    DisableInterrupts
+          
+   /*********************************************************
+  初始化全局变量
+  *********************************************************/
+  for(Atem8B0=0 ; Atem8B0 < 20; Atem8B0 ++)  {
+        LineFav[Atem8B0]  = 0X70;
+    
+    }
+   for(Atem8B0=0 ; Atem8B0 < 50; Atem8B0 ++)  {
+        ALeftLineAryy[Atem8B0]  = 0X08;
+    
+    }
+    for(Atem8B0=0 ; Atem8B0 < 50; Atem8B0 ++)  {
+        ALastLeftLinAryy[Atem8B0]  = 0X08;
+    
+    } 
+    
+    for(Atem8B0=0 ; Atem8B0 < 50; Atem8B0 ++)  {
+        ARightLineAryy[Atem8B0]  = 0X29;
+    
+    }    
+   
+    for(Atem8B0=0 ; Atem8B0 < 50; Atem8B0 ++)  {
+        ALastRightLinAryy[Atem8B0]  = 0X29;
+    
+    }  
+      
+    StringMID[0]  =  1250;
+    StringMID[1]  =  1250;
+    StringMID[2]  =  1250;
+    StringMID[3]  =  1250;
+    StringMID[4]  =  1000;
+    StringMID[5]  =  800;
+    StringMID[6]  =  600;
+    StringMID[7]  =  400;
+    StringMID[8]  =  200;
+    StringMID[9]  =  0;
+    StringMID[10] =  0;
+    StringMID[11] = -500;
+    StringMID[12] = -700;
+    StringMID[13] = -1000;
+    StringMID[14] = -1150;
+    StringMID[15] = -1150;
+    StringMID[16] = -1150; 
+    StringMID[17] = -1150;
+    StringMID[18] = -1150;
+    StringMID[19] = -1150;
+    StringMID[20] = -1150;
+    StringMID[21] = -1150;
+    StringMID[22] = -1150;  
+
+    
+    SCI0_Init();
+    /*************************************
+    初始化电机
+    *************************************/
+    PWM_init () ;
+   
+    /***************************
+    初始化摄像头采样
+    ***************************/
+    CD_init ();
+    PIT_Init();
+    
+    EnableInterrupts;
+
+    for(;;) {
+    
+      if( DataLine) {
+     //    
+      
+          DataLine = 0 ;
+          
+         /* */
+          PIEH = 0X00 ;  
+          SCI0_SendChar1(0xff);
+          SCI0_SendChar1(0xff);
+          SCI0_SendChar1(0xff);
+          SCI0_SendChar1(0xff);
+          for (ATemp =0 ;ATemp <DATACOUNT  ;ATemp ++) {
+              SCI0_SendChar1(ADdata[ATemp]);
+          }
+        PIEH = 0X40 ;
+          
+          
+      }
+            
+//1S Timer
+        if(Timer1sFlag!=0) {
+         Timer1sFlag = 0;
+
+     } 
+ 
+      
+//20ms Timer
+        if(Timer20msFlag!=0) {
+            Timer20msFlag = 0;
+
+
+      }
+      
+
+//10ms Timer
+        if(Timer10msFlag!=0) {
+     //     SCI0_SendChar1(5);
+            Timer10msFlag = 0;
+
+        } 
+        
+//10ms Timer
+        if(Timer5msFlag!=0) {
+            Timer5msFlag = 0; 
+
+        }
+
+    }
+}
